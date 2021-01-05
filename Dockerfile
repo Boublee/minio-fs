@@ -19,4 +19,4 @@ WORKDIR /app
 EXPOSE 8000
 
 # 会被docker-compose覆盖
-CMD ["uvicorn", "main:app"]
+CMD ["uvicorn", "-host", "0.0.0.0", "main:app"]

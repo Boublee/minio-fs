@@ -57,7 +57,7 @@ services:
         # - "traefik.http.services.<SERVICE>.loadbalancer.server.port=<服务端口号>"
         # region traefik 配置
         - "traefik.enable=true"
-        - "traefik.http.routers.entrypoints.entrypoints=web, websecure"
-        - "traefik.http.routers.entrypoints.rule=Host(`dev.baizhiedu.cn`)"
-        - "traefik.http.services.entrypoints.loadbalancer.server.port=8888"
+        - "traefik.http.routers.miniofs.entrypoints=web, websecure"
+        - "traefik.http.routers.miniofs.rule=Host(`miniofs.bobby.org.cn.cn`)"
+        - "traefik.http.services.miniofs.loadbalancer.server.port=8080"
         # endregion traefik 配置

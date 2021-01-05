@@ -52,7 +52,7 @@ steps:
     commands:
       # 使用环境变量时, 需要进行转义
       # 参考: https://docs.drone.io/pipeline/environment/substitution/#escaping
-      - export STACK_DIR=/home/dev/services/$${STACK_NAME}
+      - export STACK_DIR=/root/docker/$${STACK_NAME}
       - mkdir -p $${STACK_DIR}
       - docker stack down $${STACK_NAME}
       - mv -f docker-compose.yml $${STACK_DIR}/docker-compose.yml

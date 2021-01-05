@@ -58,6 +58,6 @@ services:
         # region traefik 配置
         - "traefik.enable=true"
         - "traefik.http.routers.miniofs.entrypoints=web, websecure"
-        - "traefik.http.routers.miniofs.rule=Host(`miniofs.bobby.org.cn.cn`)"
+        - "traefik.http.routers.miniofs.rule=Host(`miniofs.bobby.org.cn`)"
         - "traefik.http.services.miniofs.loadbalancer.server.port=8080"
         # endregion traefik 配置

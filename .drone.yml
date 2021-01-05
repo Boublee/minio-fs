@@ -1,0 +1,59 @@
+# 配置 pipeline 类型, 此处统一使用 ssh
+# 固定值, 无需修改
+kind: pipeline
+type: ssh
+name: default
+
+# 配置需要执行命令的服务器
+# 参考: https://docs.drone.io/pipeline/ssh/syntax/server/
+server:
+  host: 139.129.88.199
+  user: root
+  # 使用 ssh_key 或 password
+#  ssh_key:
+#    # 从页面中配置的 secret 中获取敏感信息, 避免敏感信息暴露
+#    # 参考: https://docs.drone.io/secret/
+#    from_secret: ssh_key
+  password:
+     from_secret: server_password
+
+# drone 在执行 pipeline 时, 会自动 clone 代码到临时文件夹, 并使用项目文件夹根目录作为工作目录
+# 当 drone 默认的 clone 逻辑 不满足需求时, 可禁用自动 clone, 并自行实现
+# 参考: https://docs.drone.io/pipeline/ssh/syntax/cloning/
+
+
+# 指定 drone 的触发条件
+# 参考: https://docs.drone.io/pipeline/triggers/
+trigger:
+  event:
+    - tag # 创建 tag
+
+# 声明 drone 的执行步骤
+# 参考: https://docs.drone.io/pipeline/ssh/syntax/steps/
+steps:
+  - name: build # 打包镜像
+    # 指定环境变量
+    # 参考: https://docs.drone.io/pipeline/environment/syntax/
+    environment: &common-env # yaml 引用语法, 参考: http://www.ruanyifeng.com/blog/2016/07/yaml.html
+      MINIOFS_IMAGE: miniofs:${DRONE_TAG##v}
+    commands:
+      - docker build -t $MINIOFS_IMAGE .
+
+  - name: run # 运行容器
+    # 指定环境变量
+    # 参考: https://docs.drone.io/pipeline/environment/syntax/
+    environment:
+      <<: *common-env
+      STACK_NAME: miniofs
+      MINIO_ACCESS_KEY:
+        from_secret: minio_access_key
+      MINIO_SECRET_KEY:
+        from_secret: minio_secret_key
+    commands:
+      # 使用环境变量时, 需要进行转义
+      # 参考: https://docs.drone.io/pipeline/environment/substitution/#escaping
+      - export STACK_DIR=/home/dev/services/$${STACK_NAME}
+      - mkdir -p $${STACK_DIR}
+      - docker stack down $${STACK_NAME}
+      - mv -f docker-compose.yml $${STACK_DIR}/docker-compose.yml
+      - docker stack up -c $${STACK_DIR}/docker-compose.yml $${STACK_NAME}

@@ -1,0 +1,63 @@
+# docker-compose.yml 文件版本
+# 3.8 版本对应 docker 19.03.0+
+# 参考: https://docs.docker.com/compose/compose-file/compose-file-v3/
+# 固定值, 无需修改
+version: '3.8'
+
+# yaml 引用
+# 声明可能复用的配置段, 可以使用 * 号引用 & 号标记的内容
+# 参考: http://www.ruanyifeng.com/blog/2016/07/yaml.html
+# 固定值, 无需修改
+x-timezone: # 自定key, 非 docker-compose.yml 文件指定key
+  timezone: &timezone
+    source: timezone
+    target: /etc/timezone
+  localtime: &localtime
+    source: localtime
+    target: /etc/localtime
+
+# 声明网络
+# 在同一网络内的容器可以相互访问
+# 在 proxy 网络中的容器可以被 反向代理服务 traefik 访问
+networks:
+  proxy:
+    external: true # 声明该网络为外部网络, 不需要 docker-compose 或 docker swarm 管理
+
+# 声明配置
+configs:
+  timezone:
+    external: true
+  localtime:
+    external: true
+
+# 声明数据卷
+volumes:
+  data: # 非外部, 将由 docker-compose 或 docker swarm 创建管理
+
+# 声明服务
+services:
+  miniofs:
+    image: ${MINIOFS_IMAGE} # 引用环境变量
+    networks:
+      - proxy # 使用已声明的网络
+    configs:
+      - *timezone
+      - *localtime
+    environment:
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
+    deploy:
+      replicas: 1
+      labels:
+        # 声明 traefik 反向代理的配置
+        # 模板:
+        # - "traefik.enable=true"
+        # - "traefik.http.routers.<服务名(自定, 不可重复)>.entrypoints=web, websecure"
+        # - "traefik.http.routers.<SERVICE>.rule=Host(`<多级域名>.dev.baizhiedu.cn`)"
+        # - "traefik.http.services.<SERVICE>.loadbalancer.server.port=<服务端口号>"
+        # region traefik 配置
+        - "traefik.enable=true"
+        - "traefik.http.routers.entrypoints.entrypoints=web, websecure"
+        - "traefik.http.routers.entrypoints.rule=Host(`dev.baizhiedu.cn`)"
+        - "traefik.http.services.entrypoints.loadbalancer.server.port=8888"
+        # endregion traefik 配置

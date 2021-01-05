@@ -16,7 +16,7 @@ COPY . /app/
 WORKDIR /app
 
 
-EXPOSE 8080
+EXPOSE 8000
 
 # 会被docker-compose覆盖
 CMD ["uvicorn", "main:app"]
